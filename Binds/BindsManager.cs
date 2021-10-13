@@ -1,16 +1,11 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework.Input;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using Microsoft.Xna.Framework.Input;
-using SourceConsole.Points.Commands;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
-using Terraria.ModLoader.IO;
-using WebmilioCommons;
 using WebmilioCommons.Extensions;
 using WebmilioCommons.Inputs;
 
@@ -141,33 +136,17 @@ public class BindsManager : ModSystem
     private void SaveCfg(StreamWriter writer, BindType type)
     {
         var commandName = _byType[type];
-        Func<BindGroup, string> sentenceGet = null;
 
-        switch (type)
+        foreach ((Keys key, BindGroup bind) in _binds)
         {
-            case BindType.Global:
-                sentenceGet = group => group.global;
-                break;
-
-            case BindType.World:
-                sentenceGet = group => group.world;
-                break;
-
-            case BindType.Player:
-                sentenceGet = group => group.player;
-                break;
-        }
-
-        foreach (var kvp in _binds)
-        {
-            var bindSentence = sentenceGet(kvp.Value);
+            var bindSentence = bind.Get(type);
 
             if (string.IsNullOrWhiteSpace(bindSentence))
             {
                 continue;
             }
 
-            writer.WriteLine($"{commandName} {kvp.Key} {bindSentence}");
+            writer.WriteLine($"{commandName} {key} {bindSentence}");
         }
     }
 
@@ -234,20 +213,7 @@ public class BindsManager : ModSystem
             _binds.Add(key, bind = new());
         }
 
-        switch (type)
-        {
-            case BindType.Global:
-                bind.global = bindSentence;
-                break;
-
-            case BindType.World:
-                bind.world = bindSentence;
-                break;
-
-            case BindType.Player:
-                bind.player = bindSentence;
-                break;
-        }
+        bind.Set(type, bindSentence);
     }
 
     public bool TryGet(Keys key, out BindGroup bind) => _binds.TryGetValue(key, out bind);
@@ -261,19 +227,11 @@ public class BindsManager : ModSystem
             return false;
         }
 
-        switch (type)
+        bind.Set(type, null);
+
+        if (!bind.Any())
         {
-            case BindType.Global:
-                bind.global = null;
-                break;
-
-            case BindType.World:
-                bind.world = null;
-                break;
-
-            case BindType.Player:
-                bind.player = null;
-                break;
+            Remove(key);
         }
 
         return true;
@@ -284,5 +242,36 @@ public class BindsManager : ModSystem
         public string global;
         public string world;
         public string player;
+
+        public void Set(BindType type, string value)
+        {
+            switch (type)
+            {
+                case BindType.Global:
+                    global = value;
+                    break;
+
+                case BindType.World:
+                    world = value;
+                    break;
+
+                case BindType.Player:
+                    player = value;
+                    break;
+            }
+        }
+
+        public string Get(BindType type)
+        {
+            return type switch
+            {
+                BindType.Global => global,
+                BindType.World => world,
+                BindType.Player => player,
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            };
+        }
+
+        public bool Any() => !string.IsNullOrWhiteSpace(global) || !string.IsNullOrWhiteSpace(world) || !string.IsNullOrWhiteSpace(player);
     }
 }
