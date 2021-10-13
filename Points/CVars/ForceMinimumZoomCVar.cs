@@ -4,13 +4,13 @@ using Terraria.ModLoader;
 
 namespace SourceConsole.Points.CVars;
 
-public class ForcedMinimumZoomCVar : CVar<int>
+public class ForceMinimumZoomCVar : CVar<int>
 {
-    private const string CommandName = "forcedminimumzoom";
+    private const string CommandName = "forceminimumzoom";
     private readonly FieldInfo _zoomField;
 
 
-    public ForcedMinimumZoomCVar() : base(CommandName, CommandLocation.Client)
+    public ForceMinimumZoomCVar() : base(CommandName, CommandLocation.Client)
     {
         _zoomField = typeof(ModLoader).GetField("removeForcedMinimumZoom", BindingFlags.NonPublic | BindingFlags.Static);
     }
@@ -40,5 +40,5 @@ public class ForcedMinimumZoomCVar : CVar<int>
         set => _zoomField.SetValue(null, value != Default);
     }
 
-    public override int Default { get; set; } = 1;
+    public override int Default { get; } = 1;
 }
