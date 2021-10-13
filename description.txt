@@ -1,0 +1,5 @@
+Source-Style Console adds source-style console commands that have a similar "feel" to the ones from Dota 2, CS:GO, TF2, etc.
+
+The currently added commands are:
+- /invite :	opens the invite menu
+- /invite <name> : invites the specified person with the exact name; if nothing is found, invites the closest (contains).
