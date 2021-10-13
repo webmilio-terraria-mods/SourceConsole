@@ -32,16 +32,15 @@ public class InviteCommand : Command
     private void InviteFromId(ulong steamId)
     {
         CSteamID id = new(steamId);
-        
+
 
         if (!SteamMatchmaking.InviteUserToLobby(new CSteamID(Main.LobbyId), id))
         {
             Error($"Failed to invite Steam ID {steamId}.");
+            return;
         }
-        else
-        {
-            Success(string.Format(InviteSuccess, SteamFriends.GetFriendPersonaName(id)));
-        }
+
+        Success(string.Format(InviteSuccess, SteamFriends.GetFriendPersonaName(id)));
     }
 
     private void InviteFromName(string name)
@@ -72,7 +71,9 @@ public class InviteCommand : Command
             for (int i = 0; i < cached.Count; i++)
             {
                 if (comparer(cached[i])(name, StringComparison.OrdinalIgnoreCase))
+                {
                     return cached[i];
+                }
             }
 
             return null;
@@ -87,8 +88,13 @@ public class InviteCommand : Command
             return;
         }
 
-        Success($"Invited `{toInvite.PersonaName}` to the game!");
-        SteamMatchmaking.InviteUserToLobby(new CSteamID(Main.LobbyId), toInvite.SteamId);
+        if (SteamMatchmaking.InviteUserToLobby(new CSteamID(Main.LobbyId), toInvite.SteamId))
+        {
+            Success(string.Format(InviteSuccess, toInvite.PersonaName));
+            return;
+        }
+
+        Error($"Could not invite `{toInvite.PersonaName}` to the game.");
     }
 
     private record CachedFriend(CSteamID SteamId, string PersonaName);

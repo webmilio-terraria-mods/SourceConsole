@@ -39,7 +39,7 @@ public abstract class UnbindCommand : Command
 
 public class UnbindGlobalCommand : UnbindCommand
 {
-    public UnbindGlobalCommand(string name) : base(name, BindType.Global)
+    public UnbindGlobalCommand() : base("unbind", BindType.Global)
     {
     }
 }
@@ -53,7 +53,7 @@ public class UnbindGlobalCommand : UnbindCommand
 
 public class UnbindPlayerCommand : UnbindCommand
 {
-    public UnbindPlayerCommand(string name) : base(name, BindType.Player)
+    public UnbindPlayerCommand() : base("unbindplayer", BindType.Player)
     {
     }
 }
