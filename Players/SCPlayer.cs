@@ -10,20 +10,19 @@ namespace SourceConsole.Players;
 
 public class SCPlayer : BetterModPlayer
 {
-    protected override void ModLoad(TagCompound tag)
+    private readonly BindsManager _binds;
+
+    public SCPlayer()
     {
-        var id = Player.GetModPlayer<WCPlayer>().UniqueID;
-        ModContent.GetInstance<BindsManager>().LoadCfgs(id);
+        _binds = ModContent.GetInstance<BindsManager>();
     }
 
-    protected override void ModSave(TagCompound tag)
+    public override void OnEnterWorld(Player player)
     {
-        var id = Player.GetModPlayer<WCPlayer>().UniqueID;
-        ModContent.GetInstance<BindsManager>().SaveCfgs(id);
+        _binds.LoadCfgs(GetUniqueId());
     }
+    
+    protected override void ModSave(TagCompound tag) => _binds.SaveCfgs(GetUniqueId());
 
     private Guid GetUniqueId() => Player.GetModPlayer<WCPlayer>().UniqueID;
-
-    // Fuckin' useless, can't figure out a way to trigger Load otherwise.
-    [Save] public bool Flag { get; set; }
 }
