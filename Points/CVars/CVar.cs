@@ -20,5 +20,5 @@ public abstract class CVar<T> : ConsolePoint
     }
 
     public abstract T Value { get; set; }
-    public abstract T Default { get; set; }
+    public abstract T Default { get; }
 }

@@ -11,7 +11,7 @@ public class ZoomCVar : CVar<float>
 
     protected override void ActionLocal(CommandCaller caller, Player player, string input, string[] args)
     {
-        if (args.Length == 0)
+        if (args.Length != 1)
         {
             PrintNoArguments();
             return;
@@ -34,5 +34,5 @@ public class ZoomCVar : CVar<float>
         set => Main.GameZoomTarget = value;
     }
 
-    public override float Default { get; set; } = 1f;
+    public override float Default { get; } = 1f;
 }
