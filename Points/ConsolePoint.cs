@@ -1,7 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 using WebmilioCommons.Commands;
+using WebmilioCommons.Extensions;
 
 namespace SourceConsole.Points;
 
@@ -12,6 +14,50 @@ public abstract class ConsolePoint : StandardCommand
     {
         ExecutionLocation = executionLocation;
     }
+
+    protected bool GetBoolean(string str)
+    {
+        return sbyte.TryParse(str, out var i) && i == 1 ||
+               bool.TryParse(str, out var b) && b;
+    }
+
+    protected override void Action(CommandCaller caller, Player player, string input, string[] args)
+    {
+        if (args.Length == 0 && MinArgCount > 0)
+        {
+            PrintNoArguments();
+            return;
+        }
+
+        if (!CanExecute(caller, player, input, args))
+        {
+            return;
+        }
+
+        if (ExecutionLocation.HasFlag(CommandLocation.Client) && Main.netMode != NetmodeID.Server)
+        {
+            player.DoIfLocal(p => BothAction(p, args));
+            player.DoIfLocal(p => ClientAction(p, args));
+        }
+        
+        if (ExecutionLocation.HasFlag(CommandLocation.Server))
+        {
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+            {
+                Error($"Can't change replicated ConVar {Command} from console of client, only server operator can change its value.");
+                return;
+            }
+
+            BothAction(player, args);
+            ServerAction(caller, player, args);
+        }
+    }
+
+    public virtual bool CanExecute(CommandCaller caller, Player player, string input, string[] args) => true;
+
+    public virtual void BothAction(Player caller, string[] args) { }
+    public virtual void ClientAction(Player caller, string[] args) { }
+    public virtual void ServerAction(CommandCaller caller, Player playerCaller, string[] args) { }
 
     protected void Log(string message) => Main.NewText(message);
     protected void Success(string message) => Main.NewText(message, Color.DarkGreen);
@@ -29,6 +75,8 @@ public abstract class ConsolePoint : StandardCommand
             Log($"- {Description}");
         }
     }
+
+    public virtual int MinArgCount { get; } = 1;
 
     // TODO Implement Cheats check
     public virtual bool Cheat { get; }

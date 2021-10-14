@@ -15,7 +15,7 @@ public abstract class UnbindCommand : Command
         BindType = bindType;
     }
 
-    protected override void ActionLocal(CommandCaller caller, Player player, string input, string[] args)
+    public override void ClientAction(Player caller, string[] args)
     {
         if (args.Length == 0)
         {
@@ -44,12 +44,12 @@ public class UnbindGlobalCommand : UnbindCommand
     }
 }
 
-/*public class UnbindWorldCommand : UnbindCommand
+public class UnbindWorldCommand : UnbindCommand
 {
     public UnbindWorldCommand(string name) : base(name, BindType.World)
     {
     }
-}*/
+}
 
 public class UnbindPlayerCommand : UnbindCommand
 {

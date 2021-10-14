@@ -1,7 +1,10 @@
-﻿namespace SourceConsole.Points;
+﻿using System;
 
-public enum CommandLocation
+namespace SourceConsole.Points;
+
+[Flags]
+public enum CommandLocation : byte
 {
-    Client,
-    Server
+    Client = 1,
+    Server = Client << 1
 }

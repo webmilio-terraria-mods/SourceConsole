@@ -17,12 +17,6 @@ public class ForceMinimumZoomCVar : CVar<int>
 
     protected override void ActionLocal(CommandCaller caller, Player player, string input, string[] args)
     {
-        if (args.Length == 0)
-        {
-            PrintNoArguments();
-            return;
-        }
-
         if (!int.TryParse(args[0], out var zoom) || zoom is < 0 or > 1)
         {
             Error("Value must be an integer between 0 and 1.");

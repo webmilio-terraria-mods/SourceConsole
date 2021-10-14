@@ -6,20 +6,23 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.Config;
+using Terraria.ModLoader.IO;
 using WebmilioCommons.Extensions;
 using WebmilioCommons.Inputs;
+using WebmilioCommons.Worlds;
 
 namespace SourceConsole.Binds;
 
 public class BindsManager : ModSystem
 {
     private const string GlobalCfg = "binds.cfg";
-    private const string PlayerCfg = "binds.{0}.cfg";
+    private const string WorldCfg = "binds.world-{0}.cfg";
+    private const string PlayerCfg = "binds.player-{0}.cfg";
 
-    private Dictionary<string, BindType> _byName = new();
-    private Dictionary<BindType, string> _byType = new();
+    private readonly Dictionary<string, BindType> _byName = new();
+    private readonly Dictionary<BindType, string> _byType = new();
 
-    private Dictionary<Keys, BindGroup> _binds = new();
+    private readonly Dictionary<Keys, BindGroup> _binds = new();
     private KeyboardManager _keyboard;
 
     public override bool IsLoadingEnabled(Mod mod)
@@ -30,51 +33,39 @@ public class BindsManager : ModSystem
     public override void Load()
     {
         _keyboard = ModContent.GetInstance<KeyboardManager>();
-        _binds = new();
+    }
+
+    public override void OnWorldLoad()
+    {
+        LoadGlobalCfg();
+        LoadWorldCfg(ModContent.GetInstance<WCWorldSystem>().UniqueId);
+    }
+
+    public override void OnWorldUnload()
+    {
+        SaveGlobalCfg();
+        SaveWorldCfg(ModContent.GetInstance<WCWorldSystem>().UniqueId);
     }
 
     #region Load Files
 
-    public void LoadCfgs(Guid playerId)
+    public void LoadGlobalCfg()
     {
         _binds.Clear();
-
-        DirectoryInfo root = GetCfgRoot();
-
-        LoadGlobalCfg(root);
-        LoadPlayerCfg(root, playerId);
+        LoadCfg(GlobalFile);
     }
 
-    private void LoadGlobalCfg(DirectoryInfo root)
-    {
-        FileInfo globalCfg = GetGlobalFile(root);
-
-        if (globalCfg.Exists)
-        {
-            LoadCfg(globalCfg);
-        }
-        else
-        {
-            globalCfg.Create().Dispose();
-        }
-    }
-
-    private void LoadPlayerCfg(DirectoryInfo root, Guid playerId)
-    {
-        FileInfo playerCfg = GetPlayerFile(root, playerId);
-
-        if (playerCfg.Exists)
-        {
-            LoadCfg(playerCfg);
-        }
-        else
-        {
-            playerCfg.Create().Dispose();
-        }
-    }
+    public void LoadWorldCfg(Guid worldId) => LoadCfg(GetWorldFile(worldId));
+    public void LoadPlayerCfg(Guid playerId) => LoadCfg(GetPlayerFile(playerId));
 
     private void LoadCfg(FileInfo cfg)
     {
+        if (!cfg.Exists)
+        {
+            cfg.Create().Dispose();
+            return;
+        }
+
         using var fs = cfg.OpenRead();
         using StreamReader sr = new(fs);
 
@@ -104,16 +95,9 @@ public class BindsManager : ModSystem
 
     #region Save Files
 
-    public void SaveCfgs(Guid playerId)
-    {
-        DirectoryInfo root = GetCfgRoot();
-
-        SaveGlobalCfg(root);
-        SavePlayerCfg(root, playerId);
-    }
-
-    private void SaveGlobalCfg(DirectoryInfo root) => SaveCfg(GetGlobalFile(root), BindType.Global);
-    private void SavePlayerCfg(DirectoryInfo root, Guid playerId) => SaveCfg(GetPlayerFile(root, playerId), BindType.Player);
+    public void SaveGlobalCfg() => SaveCfg(GlobalFile, BindType.Global);
+    public void SaveWorldCfg(Guid worldId) => SaveCfg(GetWorldFile(worldId), BindType.World);
+    public void SavePlayerCfg(Guid playerId) => SaveCfg(GetPlayerFile(playerId), BindType.Player);
 
     private void SaveCfg(FileInfo cfg, BindType bindType)
     {
@@ -152,10 +136,12 @@ public class BindsManager : ModSystem
 
     #endregion
 
-    private static DirectoryInfo GetCfgRoot() => new DirectoryInfo(ConfigManager.ModConfigPath).CreateSubdirectory("cfg");
-    private static FileInfo GetGlobalFile(DirectoryInfo root) => new(Path.Combine(root.ToString(), GlobalCfg));
-    private static FileInfo GetPlayerFile(DirectoryInfo root, Guid playerId) => 
-        new(Path.Combine(root.ToString(), string.Format(PlayerCfg, playerId.ToString("N"))));
+    public FileInfo GetWorldFile(Guid worldId) => 
+        new(Path.Combine(CfgRoot.ToString(), string.Format(WorldCfg, worldId.ToString("N"))));
+    public FileInfo GetPlayerFile(Guid playerId) => 
+        new(Path.Combine(CfgRoot.ToString(), string.Format(PlayerCfg, playerId.ToString("N"))));
+
+    #region Execution
 
     public override void PostUpdateInput()
     {
@@ -200,6 +186,10 @@ public class BindsManager : ModSystem
         ModContent.GetInstance<CommandHelper>().ExecuteCommand(command);
     }
 
+    #endregion
+
+    #region Adding/Removing
+
     public void Register(BindType type, string name)
     {
         _byName.Add(name, type);
@@ -236,6 +226,11 @@ public class BindsManager : ModSystem
 
         return true;
     }
+
+    #endregion
+
+    public DirectoryInfo CfgRoot => new DirectoryInfo(ConfigManager.ModConfigPath).CreateSubdirectory("cfg");
+    public FileInfo GlobalFile => new(Path.Combine(CfgRoot.ToString(), GlobalCfg));
 
     public class BindGroup
     {

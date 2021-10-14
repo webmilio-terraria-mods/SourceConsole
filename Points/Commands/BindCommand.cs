@@ -21,14 +21,8 @@ public abstract class BindCommand : Command
         _binds.Register(bindType, name);
     }
 
-    protected override void ActionLocal(CommandCaller caller, Player player, string input, string[] args)
+    public override void ClientAction(Player caller, string[] args)
     {
-        if (args.Length < 1)
-        {
-            PrintNoArguments();
-            return;
-        }
-
         if (!Enum.TryParse(args[0], true, out Keys key))
         {
             Error($"{args[0]} is not a valid key to bind to.");
@@ -46,7 +40,7 @@ public abstract class BindCommand : Command
             var bind = bindGroup.Get(BindType);
 
             Log(string.IsNullOrWhiteSpace(bind) ?
-                string.Format(NoBindsFound, BindType, key) : 
+                string.Format(NoBindsFound, BindType, key) :
                 $"Bind for {key}: {bind}");
         }
         else if (args.Length == 2)
@@ -67,12 +61,12 @@ public class BindGlobalCommand : BindCommand
     }
 }
 
-/*public class BindWorldCommand : BindCommand
+public class BindWorldCommand : BindCommand
 {
     public BindWorldCommand() : base("bindworld", BindType.World)
     {
     }
-}*/
+}
 
 public class BindPlayerCommand : BindCommand
 {

@@ -9,23 +9,6 @@ public abstract class VolumeCVar : CVar<float>
     {
     }
 
-    protected override void ActionLocal(CommandCaller caller, Player player, string input, string[] args)
-    {
-        if (args.Length != 1)
-        {
-            PrintNoArguments();
-            return;
-        }
-
-        if (!float.TryParse(args[0], out var volume))
-        {
-            Error("The volume must be a float value.");
-            return;
-        }
-
-        Value = volume;
-    }
-
     public override float Default { get; } = 1;
 }
 

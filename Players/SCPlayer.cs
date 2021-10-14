@@ -1,10 +1,9 @@
-﻿using System;
-using SourceConsole.Binds;
+﻿using SourceConsole.Binds;
+using System;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 using WebmilioCommons.Players;
-using WebmilioCommons.Saving;
 
 namespace SourceConsole.Players;
 
@@ -17,12 +16,8 @@ public class SCPlayer : BetterModPlayer
         _binds = ModContent.GetInstance<BindsManager>();
     }
 
-    public override void OnEnterWorld(Player player)
-    {
-        _binds.LoadCfgs(GetUniqueId());
-    }
-    
-    protected override void ModSave(TagCompound tag) => _binds.SaveCfgs(GetUniqueId());
+    public override void OnEnterWorld(Player player) => _binds.LoadPlayerCfg(UniqueId);
+    protected override void ModSave(TagCompound tag) => _binds.SavePlayerCfg(UniqueId);
 
-    private Guid GetUniqueId() => Player.GetModPlayer<WCPlayer>().UniqueID;
+    private Guid UniqueId => Player.GetModPlayer<WCPlayer>().UniqueId;
 }
