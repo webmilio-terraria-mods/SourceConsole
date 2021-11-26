@@ -9,6 +9,8 @@ public class ZoomCVar : CVar<float>
     {
     }
 
+    public override bool ParseInput(string input, out float value) => float.TryParse(input, out value);
+
     public override string Description { get; } = "The client's zoom level.";
 
     public override float Value

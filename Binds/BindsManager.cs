@@ -38,13 +38,13 @@ public class BindsManager : ModSystem
     public override void OnWorldLoad()
     {
         LoadGlobalCfg();
-        LoadWorldCfg(ModContent.GetInstance<WCWorldSystem>().UniqueId);
+        //LoadWorldCfg(ModContent.GetInstance<WCWorldSystem>().UniqueId);
     }
 
     public override void OnWorldUnload()
     {
         SaveGlobalCfg();
-        SaveWorldCfg(ModContent.GetInstance<WCWorldSystem>().UniqueId);
+        //SaveWorldCfg(ModContent.GetInstance<WCWorldSystem>().UniqueId);
     }
 
     #region Load Files
@@ -58,8 +58,13 @@ public class BindsManager : ModSystem
     public void LoadWorldCfg(Guid worldId) => LoadCfg(GetWorldFile(worldId));
     public void LoadPlayerCfg(Guid playerId) => LoadCfg(GetPlayerFile(playerId));
 
-    private void LoadCfg(FileInfo cfg)
+    private void LoadCfg(FileInfo cfg, bool checkNetMode = true)
     {
+        if (checkNetMode && Main.netMode == NetmodeID.Server)
+        {
+            return;
+        }
+
         if (!cfg.Exists)
         {
             cfg.Create().Dispose();
@@ -78,6 +83,11 @@ public class BindsManager : ModSystem
         {
             string line = reader.ReadLine();
             var split = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            if (line.Length < 2)
+            {
+                continue;
+            }
 
             if (
                 !_byName.TryGetValue(split[0], out var bindType) ||
@@ -136,9 +146,9 @@ public class BindsManager : ModSystem
 
     #endregion
 
-    public FileInfo GetWorldFile(Guid worldId) => 
+    public FileInfo GetWorldFile(Guid worldId) =>
         new(Path.Combine(CfgRoot.ToString(), string.Format(WorldCfg, worldId.ToString("N"))));
-    public FileInfo GetPlayerFile(Guid playerId) => 
+    public FileInfo GetPlayerFile(Guid playerId) =>
         new(Path.Combine(CfgRoot.ToString(), string.Format(PlayerCfg, playerId.ToString("N"))));
 
     #region Execution
@@ -150,7 +160,11 @@ public class BindsManager : ModSystem
             return;
         }
 
-        _keyboard.justPressed.Do(ExecuteBind);
+        _binds.Keys.Do(key =>
+        {
+            if (_keyboard.justPressed[(int)key])
+                ExecuteBind(key);
+        });
     }
 
     private void ExecuteBind(Keys key)
@@ -196,7 +210,7 @@ public class BindsManager : ModSystem
         _byType.Add(type, name);
     }
 
-    public void Set(Keys key, BindType type, string bindSentence)
+    public bool Set(Keys key, BindType type, string bindSentence)
     {
         if (!TryGet(key, out var bind))
         {
@@ -204,6 +218,7 @@ public class BindsManager : ModSystem
         }
 
         bind.Set(type, bindSentence);
+        return true;
     }
 
     public bool TryGet(Keys key, out BindGroup bind) => _binds.TryGetValue(key, out bind);

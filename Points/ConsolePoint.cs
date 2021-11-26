@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using SourceConsole.Points.Commands;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -36,7 +37,7 @@ public abstract class ConsolePoint : StandardCommand
 
         if (ExecutionLocation.HasFlag(CommandLocation.Client) && Main.netMode != NetmodeID.Server)
         {
-            player.DoIfLocal(p => BothAction(p, args));
+            player.DoIfLocal(p => CommonAction(p, args));
             player.DoIfLocal(p => ClientAction(p, args));
         }
         
@@ -48,20 +49,20 @@ public abstract class ConsolePoint : StandardCommand
                 return;
             }
 
-            BothAction(player, args);
+            CommonAction(player, args);
             ServerAction(caller, player, args);
         }
     }
 
     public virtual bool CanExecute(CommandCaller caller, Player player, string input, string[] args) => true;
 
-    public virtual void BothAction(Player caller, string[] args) { }
+    public virtual void CommonAction(Player caller, string[] args) { }
     public virtual void ClientAction(Player caller, string[] args) { }
     public virtual void ServerAction(CommandCaller caller, Player playerCaller, string[] args) { }
 
-    protected void Log(string message) => Main.NewText(message);
-    protected void Success(string message) => Main.NewText(message, Color.DarkGreen);
-    protected void Error(string message) => Main.NewText(message, Color.DarkRed);
+    protected static void Log(object message) => Main.NewText(message);
+    protected static void Success(object message) => Main.NewText(message, Color.DarkGreen);
+    protected static void Error(object message) => Main.NewText(message, Color.DarkRed);
 
     protected virtual void PrintNoArguments()
     {

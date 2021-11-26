@@ -9,6 +9,8 @@ public abstract class VolumeCVar : CVar<float>
     {
     }
 
+    public override bool ParseInput(string input, out float value) => float.TryParse(input, out value);
+
     public override float Default { get; } = 1;
 }
 

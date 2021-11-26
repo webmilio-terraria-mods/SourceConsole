@@ -14,14 +14,14 @@ public abstract class CVar<T> : ConsolePoint
     {
         if (!ParseInput(args[0], out var value))
         {
-            Error($"Value must of type {nameof(T)}.");
+            Error($"Value must of type {typeof(T).Name}.");
             return;
         }
 
         Value = value;
     }
 
-    public virtual bool ParseInput(string input, out T value) => throw new NotImplementedException($"You must override this method if you aren't overriding {nameof(ClientAction)}.");
+    public virtual bool ParseInput(string input, out T value) => throw new NotImplementedException($"You must override this method if you aren't overriding {nameof(CommonAction)}.");
 
     protected override void PrintNoArguments()
     {
